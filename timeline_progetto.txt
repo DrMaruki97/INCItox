@@ -1,5 +1,25 @@
 ## Analisi requisiti
 
+Ricerca dati tossicologi ( NOAEL ); LD50 
+
+ECHA,EMA,CIR,ISS -> banche dati di tossicologia cosmetica
+
+INCI name -> associa un termine ad un ingrediente, standard internazionale
+
+necessità di rendere immediata l'estrazione di valori di NOAEL (o LD50) e renderli disponibili
+per ogni ingrediente di un dato cosmetico
+
+ogni valore va messo con riferimento bibliografico
+
+obbiettivo: valore sito paper \ per ogni componente del cosmetico
+
+idealmente almeno due valori per ogni componente 
+
+se manca un valore fare uscire un messaggio di errore 'Non trovato'
+
+idealmente prima cercare in echa ( ricerco '<ingrediente> echa dossier'; da li o dose ripetuta o se manca toxicity)
+
+
 ## Analisi tecnologie
 
 ## Recupero dati
