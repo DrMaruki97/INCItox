@@ -3,6 +3,7 @@
 import requests as req
 import string 
 from bs4 import BeautifulSoup
+import redis as r
 
 def aggiorna_database(database:dict):
 

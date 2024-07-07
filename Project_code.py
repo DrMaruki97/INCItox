@@ -4,3 +4,6 @@ import requests as req
 import CosmeticIngredientReview as cir
 import string 
 from bs4 import BeautifulSoup
+
+database = {}
+cir.aggiorna_database(database)
