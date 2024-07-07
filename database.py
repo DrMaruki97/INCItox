@@ -19,36 +19,49 @@ request = 'https://cir-reports.cir-safety.org/FetchCIRReports/?&pagingcookie=%26
 header = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'}
 url_base = 'https://cir-reports.cir-safety.org/' 
 
-
+'''
 for i in range(1,3):
 
     table = req.get(f'{request}{i}',headers=header)
     table = table.json()
     for el in tqdm(table['results']):
             if not r.get(f'Ingredient:{el['pcpc_ingredientname']}'):
+               
                   
-                r.set(f'Ingredient:{el['pcpc_ingredientname']}',f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}')
-                r.set(f'Ingredient:{el['pcpc_ciringredientname']}',f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}')
-                r.rpush('list:ingredients',f'{el['pcpc_ingredientname']}',f'{el['pcpc_ciringredientname']}')
+               if el['pcpc_ingredientname'] == el['pcpc_ciringredientname'] or not el['pcpc_ciringredientname']:
+                    
+                    r.set(f'Ingredient:{el['pcpc_ingredientname']}',f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}')
+                    r.rpush('list:ingredients',f'{el['pcpc_ingredientname']}')
+                    
+               else:
+               
+                   r.set(f'Ingredient:{el['pcpc_ingredientname']}',f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}')
+                   r.set(f'Ingredient:{el['pcpc_ciringredientname']}',f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}')
+                   r.rpush('list:ingredients',f'{el['pcpc_ingredientname']}',f'{el['pcpc_ciringredientname']}')'''
 
 ingredienti = r.lrange('list:ingredients',0,-1)
 
+try:
 
-for el in tqdm(ingredienti[:101]):
-    link = r.get(f'Ingredient:{el}')
-    web_page = req.get(link,headers=header)
-    page = BeautifulSoup(web_page.text,'html.parser')
-    righe = page.find_all('tr')
-    for i in range(1,len(righe)):
-        riga = i      
-        report = righe[i].a['href']
-        if report[0] == '.':
-            break
-    final_url = url_base + report[report.index('/')+1:]
-    r.set(f'pdf:{el}',final_url)
-    date = righe[riga].find_all('td')[-1]       
-    r.set(f'data_pdf:{el}',date.text)
-
+    for el in tqdm(ingredienti[334:]):
+        link = r.get(f'Ingredient:{el}')
+        web_page = req.get(link,headers=header)
+        page = BeautifulSoup(web_page.text,'html.parser')
+        righe = page.find_all('tr')
+        if len(righe)>1:
+            for i in range(1,len(righe)):
+                riga = i      
+                report = righe[i].a['href']
+                if report[0] == '.':
+                    break
+            if report[0] == '.':
+                final_url = url_base + report[report.index('/')+1:]
+                r.set(f'pdf:{el}',final_url)
+                date = righe[riga].find_all('td')[-1]       
+                r.set(f'data_pdf:{el}',date.text)
+except:
+         
+    print(el)
       
 
 
