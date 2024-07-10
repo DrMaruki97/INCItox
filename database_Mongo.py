@@ -26,6 +26,9 @@ for i in range(1,3):
     for el in tqdm(table['results']):
             if not db.coll.find_one({"Nome_comune":f"{el['pcpc_ingredientname']}"}):
 
+                
+                Nome_comune = el['pcpc_ingredientname']
+                INCI_name = el['pcpc_ciringredientname']
                 link = f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}'
                 web_page = req.get(link,headers=header)
                 page = BeautifulSoup(web_page.text,'html.parser')
@@ -47,8 +50,8 @@ for i in range(1,3):
                     date = ''    
 
                 if final_url:
-                     db.coll.insert_one({"Nome_comune":f"{el['pcpc_ingredientname']}",
-                                         "INCI_name":f"{el['pcpc_ciringredientname']}",
+                     db.coll.insert_one({"Nome_comune":Nome_comune,
+                                         "INCI_name":INCI_name,
                                          "main_link":link,
                                          "pdf_link":final_url,
                                          "pdf_date":date})
