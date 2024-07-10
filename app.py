@@ -6,6 +6,7 @@ import pypdf as pdf
 import re
 import requests as req
 from io import BytesIO
+import string
 
 r = redis.Redis(
     host='redis-11492.c300.eu-central-1-1.ec2.redns.redis-cloud.com',
@@ -15,7 +16,14 @@ r = redis.Redis(
 )
 
 def sorting_func(el):
-    return el[0].split(' ')[0]
+    num = ''
+    for char in el[0]:
+        if char.isnumeric():
+            num = num+char
+        else:
+            break
+             
+    return int(num)
 
 
 ingredienti = r.lrange('list:ingredients',0,-1)
@@ -102,7 +110,8 @@ if ricerca:
         
         
         except Exception as e:
-                        st.error(f"ERRORE: {e}")
+            st.write('Non è possbile estrarre valori da questa fonte')
+                        
 
     else:
         st.write('Nessuna fonte disponibile per questo ingrediente')
