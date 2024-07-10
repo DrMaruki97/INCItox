@@ -22,8 +22,8 @@ for i in range(1,3):
 
     table = req.get(f'{request}{i}',headers=header)
     table = table.json()
-    for el in tqdm(table['results'][102:]):
-            if not r.hgetall(f'Ingredient:{el['pcpc_ingredientname']}'):
+    for el in tqdm(table['results']):
+            if not r.get(f'Ingredient:{el['pcpc_ingredientname']}'):
 
                 link = f'https://cir-reports.cir-safety.org/cir-ingredient-status-report/?id={el['pcpc_ingredientid']}'
                 web_page = req.get(link,headers=header)
@@ -35,42 +35,31 @@ for i in range(1,3):
                         report = righe[i].a['href']
                         if report[0] == '.':
                             break
-                    final_url = url_base + report[report.index('/')+1:]
-                    date = righe[riga].find_all('td')[-1].text
+                    if report[0] == '.':
+                            final_url = url_base + report[report.index('/')+1:]
+                            date = righe[riga].find_all('td')[-1].text
+                    else:
+                        final_url = ''
+                        date = ''
                 else:
-                    final_url = 'Non disponibile'
-                    date = 'Non disponibile'    
+                    final_url = ''
+                    date = ''    
 
                 if el['pcpc_ingredientname'] == el['pcpc_ciringredientname'] or not el['pcpc_ciringredientname']:
                     
-                    r.hset(f'Ingredient:{el['pcpc_ingredientname']}',mapping={'Source':final_url,'Date':date})
                     r.rpush('list:ingredients',f'{el['pcpc_ingredientname']}')
+                    if final_url:
+                        r.set(f'pdf:{el['pcpc_ingredientname']}',final_url)
+                        r.set(f'data_pdf:{el['pcpc_ingredientname']}',date.text)
+                        
+                   
                     
                 else:
-                
-                    r.hset(f'Ingredient:{el['pcpc_ingredientname']}',mapping={'Source':final_url,'Date':date})
-                    r.hset(f'Ingredient:{el['pcpc_ciringredientname']}',mapping={'Source':final_url,'Date':date})
+
                     r.rpush('list:ingredients',f'{el['pcpc_ingredientname']}',f'{el['pcpc_ciringredientname']}')
-
-'''ingredienti = r.lrange('list:ingredients',0,-1)
-
-
-for el in tqdm(ingredienti[:101]):
-    link = r.get(f'Ingredient:{el}')
-    web_page = req.get(link,headers=header)
-    page = BeautifulSoup(web_page.text,'html.parser')
-    righe = page.find_all('tr')
-    for i in range(1,len(righe)):
-        riga = i      
-        report = righe[i].a['href']
-        if report[0] == '.':
-            break
-    final_url = url_base + report[report.index('/')+1:]
-    r.set(f'pdf:{el}',final_url)
-    date = righe[riga].find_all('td')[-1]       
-    r.set(f'data_pdf:{el}',date.text)'''
-
-      
-
-
-
+                    
+                    if final_url:
+                        r.set(f'pdf:{el['pcpc_ingredientname']}',final_url)
+                        r.set(f'data_pdf:{el['pcpc_ingredientname']}',date.text)
+                        r.set(f'pdf:{el['pcpc_ciringredientname']}',final_url)
+                        r.set(f'data_pdf:{el['pcpc_ciringredientname']}',date.text)
