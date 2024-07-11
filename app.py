@@ -4,19 +4,19 @@ import Functions as f
 
 st.set_page_config(layout="wide")
 
-with st.spinner('Caricamento'):
+db = f.connect()
 
-    db = f.connect()
-
-    ingredienti = f.get_ingredients()
+ingredienti = f.get_ingredients()
 
     
 
-with st.columns(3)[1]:
+with st.columns([0.44,0.12,0.44])[1]:
 
     st.title('INCI:green[tox]')
-    
-st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
+
+with st.columns([0.28,0.46,0.26])[1]:
+
+    st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
 
 ricerca = st.selectbox('Inserire un ingrediente',
                        ingredienti,
@@ -25,10 +25,12 @@ ricerca = st.selectbox('Inserire un ingrediente',
 
 if ricerca:
 
+    with st.spinner('Caricamento'):
+
+        oggetto = f.get_object(ricerca)
+
     cir_col,pbc_col = st.columns([0.65,0.45])
     
-    oggetto = f.get_object(ricerca)
-
     with cir_col:
 
         st.write(':blue[CIR]:')
@@ -44,7 +46,8 @@ if ricerca:
             st.dataframe(tab_fonte,
                         hide_index=True,
                         column_config={'Fonte':st.column_config.LinkColumn(
-                                        display_text= nome_fonte),
+                                        display_text= nome_fonte,
+                                        width='medium'),
                                         'Data di rilascio':st.column_config.TextColumn(width='medium')},
                         use_container_width=False
                         )
