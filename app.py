@@ -2,18 +2,21 @@ import streamlit as st
 import pandas as pd
 import Functions as f
 
+st.set_page_config(layout="wide")
+
 with st.spinner('Caricamento'):
 
     db = f.connect()
 
     ingredienti = f.get_ingredients()
 
-    st.set_page_config(layout="wide")
+    
 
 with st.columns(3)[1]:
 
     st.title('INCI:green[tox]')
-    st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
+    
+st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
 
 ricerca = st.selectbox('Inserire un ingrediente',
                        ingredienti,
@@ -22,7 +25,7 @@ ricerca = st.selectbox('Inserire un ingrediente',
 
 if ricerca:
 
-    cir_col,pbc_col = st.columns([0.7,0.4])
+    cir_col,pbc_col = st.columns([0.65,0.45])
     
     oggetto = f.get_object(ricerca)
 
@@ -68,7 +71,7 @@ if ricerca:
     
     with pbc_col:
 
-        st.write(':yellow[PubChem]:')
+        st.write(':orange[PubChem]:')
                 
                 
        
