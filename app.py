@@ -1,120 +1,79 @@
 import streamlit as st
 import pandas as pd
-import CosmeticIngredientReview as cir
-import redis
-import pypdf as pdf
-import re
-import requests as req
-from io import BytesIO
-import string
+import Functions as f
 
-r = redis.Redis(
-    host='redis-11492.c300.eu-central-1-1.ec2.redns.redis-cloud.com',
-    port = 11492,
-    password='0ssFnSEhNJ6Hn7JVtznKkpOuAD1ffdtR',
-    decode_responses=True
-)
+with st.spinner('Caricamento'):
 
-def sorting_func(el):
-    num = ''
-    for char in el[0]:
-        if char.isnumeric():
-            num = num+char
-        else:
-            break
-             
-    return int(num)
+    db = f.connect()
 
+    ingredienti = f.get_ingredients()
 
-ingredienti = r.lrange('list:ingredients',0,-1)
+    st.set_page_config(layout="wide")
 
-st.set_page_config(layout="wide")
+with st.columns(3)[1]:
 
-st.title('INCI:green[tox]')
-st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
+    st.title('INCI:green[tox]')
+    st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
 
-ricerca = st.selectbox('Inserire un ingrediente',ingredienti,index=None)
+ricerca = st.selectbox('Inserire un ingrediente',
+                       ingredienti,
+                       index=None,
+                       placeholder='')
 
 if ricerca:
 
-    fonte = r.get(f'pdf:{ricerca}')
-    data = r.get(f'data_pdf:{ricerca}')
+    cir_col,pbc_col = st.columns([0.7,0.4])
+    
+    oggetto = f.get_object(ricerca)
 
+    with cir_col:
 
+        st.write(':blue[CIR]:')
 
-    if fonte:
+        fonte = oggetto["pdf_link"]
+        data = oggetto["pdf_date"]
+        nome_fonte = oggetto["pdf_name"]
 
-        tab_fonte = pd.DataFrame({'Fonte':[fonte],'Data di rilascio':[data]})
+        if fonte:
 
-        st.dataframe(tab_fonte,
-                     hide_index=True,
-                     column_config={'Fonte':st.column_config.LinkColumn(
-                                    display_text= 'Clicca per andare alla fonte'),
-                                    'Data di rilascio':st.column_config.TextColumn(width='medium')},
-                     use_container_width=False
-                     )
+            tab_fonte = pd.DataFrame({'Fonte':[fonte],'Data di rilascio':[data]})
 
-        try:
-            response = req.get(fonte)
-            file = BytesIO(response.content)            
-            pdf_text=pdf.PdfReader(file)
-            print(len(pdf_text.pages))
-            text = ''.join([x.extract_text() for x in pdf_text.pages])
-            text = text.replace('\n','').replace('\r','')
-            noael_pattern = r'(.{0,100}\bNOAEL\b.{0,100})'
-            ld50_pattern = r'(.{0,100}\bLD\s*50\b.{0,100})'
-            noael_values = re.findall(noael_pattern,text,re.IGNORECASE)
-            ld50_values = re.findall(ld50_pattern,text,re.IGNORECASE)
-            ld50_final_values = []
-            noael_final_values = []
-            if noael_values:
-                for i in range(len(noael_values)):
-                    noael_value_pattern = r'\b\d+\s*[\.,]*\d*\s*.g/kg[\s*bw|body\s*weight]*[\/d.*]* \b'
-                    noael = re.findall(noael_value_pattern,noael_values[i])
-                    if noael:
-                        if len(noael) == 1:
-                            noael_final_values.append((noael[0],noael_values[i]))
-                        else:
-                            for el in noael:
-                                noael_final_values.append((el,noael_values[i]))
-            if ld50_values:
-                for i in range(len(ld50_values)):
-                    ld50_value_pattern = r'\b\d+\s*[\.,]*\d*\s*.g/kg[\s*bw|body\s*weight]*\b'
-                    ld50 = re.findall(ld50_value_pattern,ld50_values[i])
-                    if ld50:
-                        if len(ld50) == 1:
-                            ld50_final_values.append((ld50[0],ld50_values[i]))
-                        else:
-                            for el in ld50:
-                                ld50_final_values.append((el,ld50_values[i]))
-            
-            if noael_final_values:
+            st.dataframe(tab_fonte,
+                        hide_index=True,
+                        column_config={'Fonte':st.column_config.LinkColumn(
+                                        display_text= nome_fonte),
+                                        'Data di rilascio':st.column_config.TextColumn(width='medium')},
+                        use_container_width=False
+                        )
 
-                noael_final_values.sort(key=sorting_func,reverse=True)
-                valori_noael = [x[0] for x in noael_final_values]
-                contesti_noael = [x[1] for x in noael_final_values]
+            source = f.source_text(fonte)
 
-            if ld50_final_values:
-                ld50_final_values.sort(key=sorting_func,reverse=True)
-                valori_ld50 = [x[0] for x in ld50_final_values]
-                contesti_ld50 = [x[1] for x in ld50_final_values]
+            valori_noael,contesti_noael = f.get_noaels(source)
+            valori_ld50,contesti_ld50 = f.get_ld50s(source)
 
-            if noael_final_values:
+            if valori_noael:
                 noaels = pd.DataFrame({'NOAEL':valori_noael,'Contesto':contesti_noael})
-            if ld50_final_values:
+            else:
+                noaels = 'Impossibile estrarre i dati di NOAEL da questa fonte'
+                
+            if valori_ld50:
                 ld50s = pd.DataFrame({'LD50':valori_ld50,'Contesto':contesti_ld50})
+            else:
+                ld50s = 'Impossibile estrarre i dati di LD50 da questa fonte'
 
-            
-            
             st.write(noaels,ld50s)
         
-        
-        except Exception as e:
-            st.write('Non è possbile estrarre valori da questa fonte')
+        else:
+            st.write('Nessuna fonte :blue[CIR] disponibile per questo ingrediente')
+    
+    with pbc_col:
+
+        st.write(':yellow[PubChem]:')
+                
+                
+       
                         
 
-    else:
-        st.write('Nessuna fonte disponibile per questo ingrediente')
 
 
 
