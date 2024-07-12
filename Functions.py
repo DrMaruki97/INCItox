@@ -1,8 +1,3 @@
-import re
-import requests as req
-import pypdf as pdf
-import streamlit as st
-from io import BytesIO
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -16,18 +11,6 @@ def connect():
     return db
 
 db = connect()
-
-# Funzione per sortare i valorei estratti dai pdf
-
-def sorting_func(el):
-    num = ''
-    for char in el[0]:
-        if char.isnumeric():
-            num = num+char
-        else:
-            break
-             
-    return int(num)
 
 # Funzione per recuperare dal DB la lista degli ingredienti disponibili, sia per nome comune
 # che per nome INCI
@@ -54,104 +37,4 @@ def get_object(ingrediente):
                             {"Nome_comune":ingrediente},
                             {"INCI_name":ingrediente}     
                             ]},{"_id":0})
-    return oggetto
-
-# Funzione per recuperare il testo da una fonte CIR, valido solo con i PDF
-
-def source_text(url):
-    try:
-        response = req.get(url)
-        file = BytesIO(response.content)            
-        pdf_text=pdf.PdfReader(file)
-        text = ''.join([x.extract_text() for x in pdf_text.pages])
-        text = text.replace('\n','').replace('\r','')
-        return text
-    except:
-        return False
-
-# Funzione di ricerca di valori NOAEL da un testo
-
-def get_noaels(text):    
-            
-    noael_pattern = r'(.{0,100}\bNOAEL\b.{0,100})'            
-    noael_values = re.findall(noael_pattern,text)            
-    noael_final_values = []
-    if noael_values:
-        for i in range(len(noael_values)):
-            noael_value_pattern = r'\b\d+\s*[\.,]*\d*\s*.g/kg[\s*bw|body\s*weight]*[\/d.*]* \b'
-            noael = re.findall(noael_value_pattern,noael_values[i])
-            if noael:
-                if len(noael) == 1:
-                    noael_final_values.append((noael[0],noael_values[i]))
-                else:
-                    for el in noael:
-                        noael_final_values.append((el,noael_values[i]))
-    
-    
-    if noael_final_values:
-
-        noael_final_values.sort(key=sorting_func)
-        valori_noael = [x[0] for x in noael_final_values]
-        contesti_noael = [x[1] for x in noael_final_values]
-        return valori_noael,contesti_noael
-    else:
-        return False,False
-            
-# Funzione di ricerca di valori NOAEL da un testo
-
-def get_ld50s(text):
-     
-    ld50_pattern = r'(.{0,100}\bLD\s*50\b.{0,100})'
-    ld50_values = re.findall(ld50_pattern,text)
-    ld50_final_values = []
-
-    if ld50_values:
-                
-        for i in range(len(ld50_values)):
-            ld50_value_pattern = r'\b\d+\s*[\.,]*\d*\s*.g/kg[\s*bw|body\s*weight]*\b'
-            ld50 = re.findall(ld50_value_pattern,ld50_values[i])
-            if ld50:
-                if len(ld50) == 1:
-                    ld50_final_values.append((ld50[0],ld50_values[i]))
-                else:
-                    for el in ld50:
-                        ld50_final_values.append((el,ld50_values[i]))
-            
-    if ld50_final_values:
-        ld50_final_values.sort(key=sorting_func)
-        valori_ld50 = [x[0] for x in ld50_final_values]
-        contesti_ld50 = [x[1] for x in ld50_final_values]
-        return valori_ld50,contesti_ld50
-    else:
-        return False,False
-
-            tab_fonte = pd.DataFrame({'Fonte':[fonte],'Data di rilascio':[data]})
-
-            st.dataframe(tab_fonte,
-                        hide_index=True,
-                        column_config={'Fonte':st.column_config.LinkColumn(
-                                        display_text= nome_fonte,
-                                        width='medium'),
-                                        'Data di rilascio':st.column_config.TextColumn(width='medium')},
-                        use_container_width=False
-                        )
-
-            source = f.source_text(fonte)
-
-            valori_noael,contesti_noael = f.get_noaels(source)
-            valori_ld50,contesti_ld50 = f.get_ld50s(source)
-
-            if valori_noael:
-                noaels = pd.DataFrame({'NOAEL':valori_noael,'Contesto':contesti_noael})
-            else:
-                noaels = 'Impossibile estrarre i dati di NOAEL da questa fonte'
-                
-            if valori_ld50:
-                ld50s = pd.DataFrame({'LD50':valori_ld50,'Contesto':contesti_ld50})
-            else:
-                ld50s = 'Impossibile estrarre i dati di LD50 da questa fonte'
-
-            st.write(noaels,ld50s)
-        
-        else:
-            st.write('Nessuna fonte :blue[CIR] disponibile per questo ingrediente')'''
+    return oggetto            
