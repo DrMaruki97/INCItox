@@ -228,7 +228,12 @@ for i in range(1,3):
                                         "valori_noael":valori_noael,
                                         "contesti_noael":contesti_noael,
                                         "valori_ld50":valori_ld50,
-                                        "contesti_ld50":contesti_ld50
+                                        "contesti_ld50":contesti_ld50,
+                                        "pbc_data":{                      # Poichè andremo poi a usare anche pubchem inserisco anche 
+                                            "page":'',                    # il campo relativo a questa fonte che verrà sovrascritto
+                                            "valori":'',                  # se troveremo corrispondenze
+                                            "fonti":''
+                                        }
                                         })
                 
 #endregion
