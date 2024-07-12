@@ -21,7 +21,7 @@ with st.columns([0.44,0.12,0.44])[1]:
 
 with st.columns([0.19,0.63,0.18])[1]:
 
-    st.header(f'Ricerca di valori NOAEL e LD50 da [:blue[CIR]]({'https://cir-reports.cir-safety.org/'}) e da [:orange[PubChem]]({'https://pubchem.ncbi.nlm.nih.gov/'})')
+    st.header('Ricerca di valori NOAEL e LD50 da [:blue[CIR]](https://cir-reports.cir-safety.org/) e da [:orange[PubChem]](https://pubchem.ncbi.nlm.nih.gov/)')
 
 
 
