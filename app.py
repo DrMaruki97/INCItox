@@ -94,7 +94,7 @@ if st.session_state.selectbox:
                 st.write(':red[Non siamo riusciti ad estrarre valori NOAEL da questa fonte]')
             
             else:
-                tabella = pd.DataFrame({'Valori':valori_noael,'Contesto':contesti_noael})
+                tabella = pd.DataFrame({'Noael':valori_noael,'Contesto':contesti_noael})
                 st.table(tabella.assign(hack='').set_index('hack'))
 
         elif st.session_state.ld50:
@@ -103,7 +103,7 @@ if st.session_state.selectbox:
                     st.write(':red[Non siamo riusciti ad estrarre valori LD50 da questa fonte]')
 
             else:
-                tabella = pd.DataFrame({'Valori':valori_ld50,'Contesto':contesti_ld50})
+                tabella = pd.DataFrame({'LD50':valori_ld50,'Contesto':contesti_ld50})
                 st.table(tabella.assign(hack='').set_index('hack'))
 
     
