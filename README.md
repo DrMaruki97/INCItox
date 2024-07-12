@@ -1,2 +1,8 @@
-# project_work_its
-Repository dedicata al project work di fine 1o anno 
+# INCItox
+
+Applicazione disponibile a questo [link](https://incitox.streamlit.app/)
+
+## OBBIETTIVI:
+- Velocizzare le ricerche di valori tossicologici del commitente
+- Utilizzare come fonti CIRreports, ECHA o altre se disponibili
+- Concentrarsi sui valori di NOAEL o in alternativa LD50
