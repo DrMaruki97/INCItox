@@ -1,6 +1,7 @@
 import re
 import requests as req
 import pypdf as pdf
+import streamlit as st
 from io import BytesIO
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -37,11 +38,11 @@ def get_ingredients():
     ingredienti = []
 
     for el in puntatore:
-        if el['Nome_comune'] == el['INCI_name'] or not el['INCI_name']:
+        if el["Nome_comune"] == el["INCI_name"] or not el["INCI_name"]:
             ingredienti.append(el["Nome_comune"])
         else:
-            ingredienti.append(el['Nome_comune'])
-            ingredienti.append(el['INCI_name'])
+            ingredienti.append(el["Nome_comune"])
+            ingredienti.append(el["INCI_name"])
     
     return ingredienti
 
@@ -123,3 +124,34 @@ def get_ld50s(text):
         return valori_ld50,contesti_ld50
     else:
         return False,False
+
+            tab_fonte = pd.DataFrame({'Fonte':[fonte],'Data di rilascio':[data]})
+
+            st.dataframe(tab_fonte,
+                        hide_index=True,
+                        column_config={'Fonte':st.column_config.LinkColumn(
+                                        display_text= nome_fonte,
+                                        width='medium'),
+                                        'Data di rilascio':st.column_config.TextColumn(width='medium')},
+                        use_container_width=False
+                        )
+
+            source = f.source_text(fonte)
+
+            valori_noael,contesti_noael = f.get_noaels(source)
+            valori_ld50,contesti_ld50 = f.get_ld50s(source)
+
+            if valori_noael:
+                noaels = pd.DataFrame({'NOAEL':valori_noael,'Contesto':contesti_noael})
+            else:
+                noaels = 'Impossibile estrarre i dati di NOAEL da questa fonte'
+                
+            if valori_ld50:
+                ld50s = pd.DataFrame({'LD50':valori_ld50,'Contesto':contesti_ld50})
+            else:
+                ld50s = 'Impossibile estrarre i dati di LD50 da questa fonte'
+
+            st.write(noaels,ld50s)
+        
+        else:
+            st.write('Nessuna fonte :blue[CIR] disponibile per questo ingrediente')'''
