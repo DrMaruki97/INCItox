@@ -46,15 +46,18 @@ for i in range(1,3):
                     else:
                         final_url = ''
                 else:
-                    final_url = ''    
+                    final_url = ''
 
-                if final_url:
-                     db.Ingredienti.insert_one({"Nome_comune":Nome_comune,
-                                         "INCI_name":INCI_name,
-                                         "main_link":link,
-                                         "pdf_link":final_url,
-                                         "pdf_date":date,
-                                         "pdf_name":pdf_name})
+                
+                db.Ingredienti.insert_one({"Nome_comune":Nome_comune,
+                                           "INCI_name":INCI_name,
+                                           "main_link":link,
+                                           "pdf_link":final_url,
+                                           "pdf_date":date,
+                                           "pdf_name":pdf_name,
+                                           "pbc_data":{"page":'',
+                                                       "valori":'',
+                                                       "fonti":''}})
                         
                    
                     
