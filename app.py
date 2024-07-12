@@ -8,78 +8,111 @@ db = f.connect()
 
 ingredienti = f.get_ingredients()
 
+if 'noael' not in st.session_state:
+    st.session_state.noael = False
+
+if 'ld50' not in st.session_state:
+    st.session_state.ld50 = False
     
 
 with st.columns([0.44,0.12,0.44])[1]:
 
     st.title('INCI:green[tox]')
 
-with st.columns([0.28,0.46,0.26])[1]:
+with st.columns([0.19,0.63,0.18])[1]:
 
-    st.header(f'Ricerca di valori NOAEL e LD50 da [CIR]({'https://cir-reports.cir-safety.org/'})')
+    st.header(f'Ricerca di valori NOAEL e LD50 da [:blue[CIR]]({'https://cir-reports.cir-safety.org/'}) e da [:orange[PubChem]]({'https://pubchem.ncbi.nlm.nih.gov/'})')
 
-ricerca = st.selectbox('Inserire un ingrediente',
-                       ingredienti,
-                       index=None,
-                       placeholder='')
 
-if ricerca:
+
+
+st.selectbox('Inserire un ingrediente',
+              ingredienti,
+              index=None,
+              placeholder='',
+              key='selectbox'
+              )
+
+if st.session_state.selectbox:
 
     with st.spinner('Caricamento'):
 
-        oggetto = f.get_object(ricerca)
+        oggetto = f.get_object(st.session_state.selectbox)
+
+        fonte_cir = oggetto["pdf_link"]
+        data_cir = oggetto["pdf_date"]
+        nome_fonte_cir = oggetto["pdf_name"]
+        valori_noael = oggetto["valori_noael"]
+        contesti_noael = oggetto["contesti_noael"]
+        valori_ld50 = oggetto["valori_ld50"]
+        contesti_ld50 = oggetto["contesti_ld50"]
+        link_pbc = oggetto["pbc_data"]["page"]
+        values_pbc = oggetto["pbc_data"]["valori"]
+        sources_pbc = oggetto["pbc_data"]["fonti"]
+
+
+        if fonte_cir:
+            str_fonte_cir = f'Fonte trovata: [{nome_fonte_cir}]({fonte_cir}) Data: {data_cir}'
+        else:
+            str_fonte_cir = 'Nessuna fonte :blue[CIR] disponibile per questo ingrediente'
+
+        if link_pbc:
+            str_page_pbc = f'Pagina :orange[PubChem]: [link]({link_pbc})'
+        else:
+            str_page_pbc = 'Nessuna pagina :orange[Pubchem] trovata'
+
 
     cir_col,pbc_col = st.columns([0.65,0.45])
     
     with cir_col:
 
-        st.write(':blue[CIR]:')
+        st.header(':blue[CIR]:')
+        st.write(str_fonte_cir)
 
-        fonte = oggetto["pdf_link"]
-        data = oggetto["pdf_date"]
-        nome_fonte = oggetto["pdf_name"]
+        noael_col,ld50_col = st.columns(2)
 
-        if fonte:
+        with noael_col:
+            
+            def noael_button():
+                st.session_state.noael = True
+                st.session_state.ld50 = False
 
-            tab_fonte = pd.DataFrame({'Fonte':[fonte],'Data di rilascio':[data]})
+            st.button('NOAEL',on_click=noael_button)
+            
 
-            st.dataframe(tab_fonte,
-                        hide_index=True,
-                        column_config={'Fonte':st.column_config.LinkColumn(
-                                        display_text= nome_fonte,
-                                        width='medium'),
-                                        'Data di rilascio':st.column_config.TextColumn(width='medium')},
-                        use_container_width=False
-                        )
+        with ld50_col:
 
-            source = f.source_text(fonte)
+            def ld50_button():
+                st.session_state.ld50 = True
+                st.session_state.noael = False
 
-            valori_noael,contesti_noael = f.get_noaels(source)
-            valori_ld50,contesti_ld50 = f.get_ld50s(source)
+            st.button('LD50',on_click=ld50_button)                
 
-            if valori_noael:
-                noaels = pd.DataFrame({'NOAEL':valori_noael,'Contesto':contesti_noael})
+        if st.session_state.noael:
+
+            if not valori_noael:
+                st.write(':red[Non siamo riusciti ad estrarre valori NOAEL da questa fonte]')
+            
             else:
-                noaels = 'Impossibile estrarre i dati di NOAEL da questa fonte'
-                
-            if valori_ld50:
-                ld50s = pd.DataFrame({'LD50':valori_ld50,'Contesto':contesti_ld50})
-            else:
-                ld50s = 'Impossibile estrarre i dati di LD50 da questa fonte'
+                tabella = pd.DataFrame({'Valori':valori_noael,'Contesto':contesti_noael})
+                st.table(tabella.assign(hack='').set_index('hack'))
 
-            st.write(noaels,ld50s)
-        
-        else:
-            st.write('Nessuna fonte :blue[CIR] disponibile per questo ingrediente')
+        elif st.session_state.ld50:
+
+            if not valori_ld50:
+                    st.write(':red[Non siamo riusciti ad estrarre valori LD50 da questa fonte]')
+
+            else:
+                tabella = pd.DataFrame({'Valori':valori_ld50,'Contesto':contesti_ld50})
+                st.table(tabella.assign(hack='').set_index('hack'))
+
     
     with pbc_col:
 
-        st.write(':orange[PubChem]:')
-                
-                
-       
-                        
+        st.header(':orange[PubChem]:')
+        st.write(str_page_pbc)
 
+        for i in range(len(values_pbc)):
 
-
-
+            st.write(f':red[Valore]: {values_pbc[i]}')
+            st.write(f':orange[Fonte]: {sources_pbc[i]}')
