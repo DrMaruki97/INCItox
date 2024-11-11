@@ -1,6 +1,0 @@
-streamlit
-python-dotenv
-genai
-google-generativeai
-fitz
-pypdf
