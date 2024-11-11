@@ -2,7 +2,13 @@ import streamlit as st
 import pandas as pd
 import strm_functions as f
 
-st.set_page_config(layout="wide")
+def new_selection():
+    st.session_state.noael = False
+    st.session_state.ld50 = False
+
+st.set_page_config(layout="wide",page_title='incitox')
+
+
 
 db = f.connect()
 
@@ -21,7 +27,8 @@ with st.columns([0.44,0.12,0.44])[1]:
 
 with st.columns([0.19,0.63,0.18])[1]:
 
-    st.header('Ricerca di valori NOAEL e LD50 da [:blue[CIR]](https://cir-reports.cir-safety.org/) e da [:orange[PubChem]](https://pubchem.ncbi.nlm.nih.gov/)')
+    st.header('Ricerca di valori NOAEL e LD50 da [:blue[CIR]](https://cir-reports.cir-safety.org/) \
+               e da [:orange[PubChem]](https://pubchem.ncbi.nlm.nih.gov/)')
 
 
 
@@ -30,7 +37,8 @@ st.selectbox('Inserire un ingrediente',
               ingredienti,
               index=None,
               placeholder='',
-              key='selectbox'
+              key='selectbox',
+              on_change=new_selection
               )
 
 if st.session_state.selectbox:
