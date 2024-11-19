@@ -1,3 +1,4 @@
+import toml as tm
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -10,7 +11,9 @@ def connect(user,password):
     db = client['INCI']
     return db
 
-db = connect()
+db_keys = tm.load('.\\streamlit\\secrets.toml')
+
+db = connect(db_keys['db_user'],db_keys['db_psw'])
 
 # Funzione per recuperare dal DB la lista degli ingredienti disponibili, sia per nome comune
 # che per nome INCI
