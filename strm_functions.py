@@ -3,9 +3,9 @@ from pymongo.server_api import ServerApi
 
 # Funzione di connessione al database
 
-def connect():
+def connect(user,password):
 
-    uri = "mongodb+srv://lucagiovagnoli:t7g^Fyi7zpN!Liw@ufs13.dsmvdrx.mongodb.net/?retryWrites=true&w=majority&appName=UFS13"
+    uri = f"mongodb+srv://{user}:{password}@ufs13.dsmvdrx.mongodb.net/?retryWrites=true&w=majority&appName=UFS13"
     client = MongoClient(uri, server_api=ServerApi('1'))
     db = client['INCI']
     return db

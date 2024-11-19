@@ -8,9 +8,12 @@ def new_selection():
 
 st.set_page_config(layout="wide",page_title='incitox')
 
+user = st.secrets.db_user
+psw = st.secrets.db_psw
 
 
-db = f.connect()
+
+db = f.connect(user,psw)
 
 ingredienti = f.get_ingredients()
 

@@ -7,8 +7,10 @@
 #region Librerie e funzioni
 
 import re
+import toml as tm
 import requests as req
 import pypdf as pdf
+from strm_functions import connect
 from io import BytesIO
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -38,9 +40,9 @@ def sorting_func(el):
 
 # Ci connettiamo al nostro database MongoDB dove verranno caricati i dati
 
-uri = "mongodb+srv://lucagiovagnoli:t7g^Fyi7zpN!Liw@ufs13.dsmvdrx.mongodb.net/?retryWrites=true&w=majority&appName=UFS13"
-client = MongoClient(uri, server_api=ServerApi('1'))
-db = client['INCI']
+db_keys = tm.load('.\\streamlit\\secrets.toml')
+
+db = connect(db_keys['db_user'],db_keys['db_psw'])
 
 # Qualora il DB fosse da aggiornare e non da creare si dovrebbe abilitare la seguente riga di codice:
 # db.Ingredienti.drop()

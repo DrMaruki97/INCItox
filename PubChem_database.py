@@ -1,3 +1,5 @@
+import toml as tm
+from strm_functions import connect
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import requests as req
@@ -8,9 +10,9 @@ from tqdm import tqdm
 
 # Ci connettiamo al nostro database Mongodb
 
-uri = "mongodb+srv://lucagiovagnoli:t7g^Fyi7zpN!Liw@ufs13.dsmvdrx.mongodb.net/?retryWrites=true&w=majority&appName=UFS13"
-client = MongoClient(uri, server_api=ServerApi('1'))
-db = client['INCI']
+db_keys = tm.load('.\\streamlit\\secrets.toml')
+
+db = connect(db_keys['db_user'],db_keys['db_psw'])
 
 #endregion
 
